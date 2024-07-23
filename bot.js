@@ -4,7 +4,6 @@ const bot = new Telegraf(token);
 const Telegraf = require('telegraf')
 const Extra = require('telegraf/extra')
 const Markup = require('telegraf/markup')
-const bot = new Telegraf(env.token)
 
 // Iniciando mongoose
     const mongoose = require('mongoose');
