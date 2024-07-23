@@ -11,7 +11,7 @@ const bot = new Telegraf(token);
 
     async function main() {
         try {
-        await mongoose.connect('mongodb+srv://medaegomes:545wxexIlW4ddZUo@telegram-todolistbot.ytnowgt.mongodb.net/?retryWrites=true&w=majority&appName=Telegram-todolistbot');
+        await mongoose.connect(process.env.MONGO_TOKEN);
         console.log('Connected to MongoDB successfully!');
         } catch (err) {
         console.error('Error connecting to MongoDB:', err);
