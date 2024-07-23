@@ -1,9 +1,9 @@
 // Acessar a variável de ambiente diretamente
 const token = process.env.TOKEN; // 'TOKEN' é o nome da variável de ambiente definida no Railway | para puxar do arquivo .env substitua para > const env = require('./.env') <
-const bot = new Telegraf(token);
 const Telegraf = require('telegraf')
 const Extra = require('telegraf/extra')
 const Markup = require('telegraf/markup')
+const bot = new Telegraf(token);
 
 // Iniciando mongoose
     const mongoose = require('mongoose');
