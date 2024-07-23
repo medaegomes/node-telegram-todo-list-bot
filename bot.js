@@ -4,6 +4,19 @@ const Extra = require('telegraf/extra')
 const Markup = require('telegraf/markup')
 const bot = new Telegraf(env.token)
 
+
+const mongoose = require('mongoose');
+
+main().catch(err => console.log(err));
+
+async function main() {
+    try {
+      await mongoose.connect('mongodb+srv://medaegomes:545wxexIlW4ddZUo@telegram-todolistbot.ytnowgt.mongodb.net/?retryWrites=true&w=majority&appName=Telegram-todolistbot');
+      console.log('Connected to MongoDB successfully!');
+    } catch (err) {
+      console.error('Error connecting to MongoDB:', err);
+    }}
+
 let lista = []
 
 const gerarBotoes = () => Extra.markup(
