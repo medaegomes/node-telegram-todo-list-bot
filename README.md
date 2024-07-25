@@ -32,17 +32,28 @@ git clone https://github.com/medaegomes/node-telegram-todo-list-bot.git
   <li>Go to <code>bot.js</code> and update <code>line 2</code> <code>const token = process.env.TOKEN</code> to <code>const env = require('./.env')</code></li>
 </ol>
 
+<h4>MongoDB Configuration</h4>
+<ol>
+  <li>Sign up for a MongoDB account if you don't have one yet. You can use MongoDB Atlas for a cloud database or set up a local MongoDB server.</li>
+  <li>Obtain your MongoDB connection URI. For MongoDB Atlas, this can be found in the "Connect" section of your cluster dashboard.</li>
+  <li>Go to the file called <code>.env</code> in the root directory of your project.</li>
+  <li>Add the following line to your <code>.env</code> file:</li>
+  <pre><code>MONGO_TOKEN=your_mongodb_connection_uri</code></pre>
+  <li>Ensure that <code>.env</code> is listed in your <code>.gitignore</code> file to avoid exposing your credentials.</li>
+</ol>
+
 <h4>Run</h4>
 
 ```
 npm install
 ```
+
 ```
 npm start
 ```
 
-<br><br>
-----------------------------
+## <br><br>
+
 <br><br>
 
 <h4>Features</h4>
