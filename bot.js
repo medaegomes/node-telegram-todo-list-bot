@@ -1,97 +1,105 @@
-// Acessar a variável de ambiente diretamente
-const token = process.env.TOKEN; // 'TOKEN' é o nome da variável de ambiente definida no Railway | para puxar do arquivo .env substitua para > const env = require('./.env') <
-const Telegraf = require('telegraf')
-const Extra = require('telegraf/extra')
-const Markup = require('telegraf/markup')
+const token = process.env.TOKEN; // To pull the environment variables from the .env file, replace the line with “ const env = require(‘./.env’) ”
+const Telegraf = require("telegraf");
+const Extra = require("telegraf/extra");
+const Markup = require("telegraf/markup");
 const bot = new Telegraf(token);
 
-// Iniciando mongoose
-    const mongoose = require('mongoose');
-    main().catch(err => console.log(err)); // Caso a conexão falhe, retorna o erro
+// Start mongoose
+const mongoose = require("mongoose");
+main().catch((err) => console.log(err));
+async function main() {
+  try {
+    await mongoose.connect(process.env.MONGO_TOKEN);
+    console.log("Connected to MongoDB successfully!");
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err);
+  }
+}
 
-    async function main() {
-        try {
-        await mongoose.connect(process.env.MONGO_TOKEN);
-        console.log('Connected to MongoDB successfully!');
-        } catch (err) {
-        console.error('Error connecting to MongoDB:', err);
-        }}
+// mongoose Schema
+const userSchema = new mongoose.Schema({
+  userId: { type: Number, required: true, unique: true },
+  lista: { type: [String], default: [] },
+});
 
-// Schema do mongoose
-    const userSchema = new mongoose.Schema({
-        userId: { type: Number, required: true, unique: true },
-        lista: { type: [String], default: [] }
-    })
+const User = mongoose.model("User", userSchema);
 
-    const User = mongoose.model('User', userSchema)
+// Search or create a user
+async function findOrCreateUser(userId) {
+  let user = await User.findOne({ userId });
+  if (!user) {
+    user = new User({ userId });
+    await user.save();
+  }
+  return user;
+}
 
-// Busca ou cria um usuário
-    async function findOrCreateUser(userId) {
-        let user = await User.findOne({ userId })
-        if (!user) {
-            user = new User({ userId })
-            await user.save()
-        }
-        return user
-    }
-
-
-// Gera botoes com os itens da lista
-    const gerarBotoes = (lista) => Extra.markup(
-        Markup.inlineKeyboard(
-            lista.map(item => Markup.callbackButton(item, `delete ${item}`)),
-            { columns: 3 }
-        )
+// Generates buttons with the items in the list
+const gerarBotoes = (lista) =>
+  Extra.markup(
+    Markup.inlineKeyboard(
+      lista.map((item) => Markup.callbackButton(item, `delete ${item}`)),
+      { columns: 1 }
     )
+  );
 
-// Iniciando Bot
-    bot.start(async ctx => {
-        // Identificando usuário e salvando suas informações em constantes
-        const userId = ctx.update.message.from.id
-        await findOrCreateUser(userId)
-        const name = ctx.update.message.from.first_name
+// Start Bot
+bot.start(async (ctx) => {
+  // Identifying users and saving their information in constants
+  const userId = ctx.update.message.from.id;
+  await findOrCreateUser(userId);
+  const name = ctx.update.message.from.first_name;
 
-        // Retorno para o usuário
-        await ctx.reply(`Oii, ${name}!`)
-        await ctx.reply('Pronto para começar a sua lista?')
-        await ctx.reply('Para adicionar um item na lista, basta digitar e me enviar!')
-        await ctx.reply('Para remover clique sobre ele')
-        await ctx.replyWithHTML('<a href="https://linktr.ee/daegomes">Clique aqui</a> para conhecer meu criador.', { disable_web_page_preview: true })
-    })
+  // Feedback to the user
+  await ctx.reply(`Hi, ${name}!`);
+  await ctx.reply("Ready to start your list?");
+  await ctx.reply(
+    "To add an item to the list, just type it in and send it to me!"
+  );
+  await ctx.reply("To remove it, click on it");
+  await ctx.replyWithHTML(
+    '<a href="https://linktr.ee/daegomes">Click here</a> to meet my creator.',
+    { disable_web_page_preview: true }
+  );
+});
 
-    bot.on('text', async ctx => {
-        // Caso a mensagem comece com "/" será ignorada
-        if (ctx.update.message.text.startsWith('/')) {
-            return;
-        }
+bot.on("text", async (ctx) => {
+  // If the message starts with “/” it will be ignored
+  if (ctx.update.message.text.startsWith("/")) {
+    return;
+  }
 
-        // Identificando usuário e salvando suas informações em constantes
-        const userId = ctx.update.message.from.id
-        const user = await findOrCreateUser(userId)
+  // Identifying users and saving their information in constants
+  const userId = ctx.update.message.from.id;
+  const user = await findOrCreateUser(userId);
 
-        // Salva o item da lista no banco de dados
-        user.lista.push(ctx.update.message.text)
-        await user.save()
+  // Saves the list item in the database
+  user.lista.push(ctx.update.message.text);
+  await user.save();
 
-        // Retorno para o usuário
-        await ctx.replyWithHTML(`<code>${ctx.update.message.text} adicionado! ✅</code>`, gerarBotoes(user.lista))
-    })
+  // Feedback to the user
+  await ctx.replyWithHTML(
+    `<code>${ctx.update.message.text} added! ✅</code>`,
+    gerarBotoes(user.lista)
+  );
+});
 
+bot.action(/delete (.+)/, async (ctx) => {
+  // Identifying users and saving their information in constants
+  const userId = ctx.update.callback_query.from.id;
+  const itemToDelete = ctx.match[1];
+  const user = await findOrCreateUser(userId);
 
+  // delete an item from the list
+  user.lista = user.lista.filter((item) => item !== itemToDelete);
+  await user.save();
 
-    bot.action(/delete (.+)/, async ctx => {
-        // Identificando usuário e salvando suas informações em constantes
-        const userId = ctx.update.callback_query.from.id
-        const itemToDelete = ctx.match[1]
-        const user = await findOrCreateUser(userId)
+  // Feedback to the user
+  await ctx.replyWithHTML(
+    `<code>${itemToDelete} done! 🗑</code>`,
+    gerarBotoes(user.lista)
+  );
+  ctx.answerCbQuery();
+});
 
-        // deleta um item da lista
-        user.lista = user.lista.filter(item => item !== itemToDelete)
-        await user.save()
-
-        // Retorno para o usuário
-        await ctx.replyWithHTML(`<code>${itemToDelete} deletado! 🗑</code>`, gerarBotoes(user.lista))
-        ctx.answerCbQuery()
-    })
-
-    bot.startPolling()
+bot.startPolling();
